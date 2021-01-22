@@ -6,6 +6,8 @@ Next
 
 # Preprocessor
 
+TODO: This has changed a lot in the current compiler, this section needs revising.
+
 Alogic implements a preprocessor which uses the syntax of the C preprocessor,
 but has a significantly smaller feature set compared to the C preprocessor. The
 main use of the preprocessor is to allow sharing of type definitions through
