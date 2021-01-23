@@ -109,7 +109,7 @@ trait PairTransformerPass extends PairsTransformerPass with ChainingSyntax {
   @nowarn("msg=parameter value cc .* is never used")
   protected def skip(decl: Decl, defn: Defn)(implicit cc: CompilerContext): Boolean = false
 
-  // Called fore each pair that needs to be transformed
+  // Called for each pair that needs to be transformed
   protected def transform(decl: Decl, defn: Defn)(implicit cc: CompilerContext): (Tree, Tree)
 
   // Called after all pairs have been transformed with the output pairs
