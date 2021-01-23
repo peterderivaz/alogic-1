@@ -18,14 +18,11 @@
 
 package com.argondesign.alogic.passes
 
-import com.argondesign.alogic.analysis.Liveness
 import com.argondesign.alogic.analysis.WrittenSymbols
 import com.argondesign.alogic.ast.Trees._
 import com.argondesign.alogic.core.Symbols._
 import com.argondesign.alogic.core.CompilerContext
 import com.argondesign.alogic.core.TypeAssigner
-import com.argondesign.alogic.transform.StatementFilter
-import com.argondesign.alogic.util.unreachable
 
 import scala.collection.mutable
 
@@ -71,17 +68,24 @@ object ExtractAssignments extends PairTransformerPass {
     for {
       EntCombProcess(stmts) <- entityDefn.combProcesses
     } {
-      def searchStmts: Unit = {
-        for { stmt <- stmts } {
-          case StmtComment =>
-          case StmtAssign(ExprSym(lhs), ExprSym(rhs)) if !forbidden.contains(rhs) => {
+      var continueSearch = true
+      for { stmt <- stmts } {
+        stmt match {
+          case StmtComment(_) =>
+          case StmtAssign(ExprSym(lhs), ExprSym(rhs))
+              if continueSearch && !forbidden.contains(rhs) => {
             valueTracker(lhs) = follow(rhs)
           }
-          case StmtAssign(lhs, rhs) => WrittenSymbols(lhs) foreach { x => forbidden += x }
-          case default              => return
+          case StmtAssign(lhs, rhs) if continueSearch =>
+            WrittenSymbols(lhs) foreach { x => forbidden += x }
+          case default =>
+            continueSearch =
+              false // Should be a better way of expressing this, really want "break" here
+          // While would also work, but then not sure how to iterate over statements
+          // Tried writing as a function and using return, but this seemed to make the compiler unhappy:
+          //"return statement uses an exception to pass control to the caller of the enclosing named method searchStmts"
         }
       }
-      searchStmts
     }
 
     // Can only apply optimization for outputs written exactly once for which valueTracker contains a known value
